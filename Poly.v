@@ -464,10 +464,75 @@ Proof.
 
  (*standard (fold_map)*)
 Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y :=
-  fold f l.
+  fold (fun x ly => (f x) :: ly) l [].
+
+Theorem map_fold_map_eq :
+  forall {X Y:Type} (f : X -> Y) (l : list X),
+    map f l = fold_map f l.
+Proof.
+  intros X Y f l. induction l as [| h t IHt].
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHt. reflexivity. Qed.
+ (*/standard (fold_map)*)
 
 
+(*advanced (currying)*)
+Definition prod_curry {X Y Z : Type}
+  (f : X * Y -> Z) (x : X) (y : Y) : Z := f (x, y).
 
+Check(prod_curry).
+
+Definition prod_uncurry {X Y Z : Type}
+  (f : X -> Y -> Z) (p : X * Y) : Z := (f (fst p))(snd p).
+
+Example test_map1': map (plus 3) [2;0;2] = [5;3;5].
+Proof. reflexivity. Qed.
+
+Check @prod_curry.
+Check @prod_uncurry.
+
+Theorem uncurry_curry : forall (X Y Z : Type)
+                        (f : X -> Y -> Z)
+                        x y,
+  prod_curry (prod_uncurry f) x y = f x y.
+Proof.
+  intros X Y Z x y z. reflexivity. Qed.
+
+Theorem curry_uncurry : forall (X Y Z : Type)
+                        (f : (X * Y) -> Z) (p : X * Y),
+  prod_uncurry (prod_curry f) p = f p.
+Proof.
+  intros X Y Z f p. destruct p as [x y]. reflexivity. Qed.
+(*/advanced (currying)*)
+
+Module Church.
+Definition cnat := forall X : Type, (X -> X) -> X -> X.
+
+Definition one : cnat :=
+  fun (X : Type) (f : X -> X) (x : X) => f x.
+
+Definition two : cnat :=
+  fun (X : Type) (f : X -> X) (x : X) => f (f x).
+
+Definition zero : cnat :=
+  fun (X : Type) (f : X -> X) (x : X) => x.
+
+Definition three : cnat := @doit3times.
+
+
+(*advanced (church_succ)*)
+Definition succ (n : cnat) : cnat :=
+  fun (X : Type) (f : X -> X) (x : X) => f(n X f x).
+
+Example succ_1 : succ zero = one.
+Proof. reflexivity. Qed.
+
+Example succ_2 : succ one = two.
+Proof. reflexivity. Qed.
+
+Example succ_3 : succ two = three.
+Proof. reflexivity. Qed.
+(*/advanced (church_succ)*)
 
 
 

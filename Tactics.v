@@ -188,5 +188,17 @@ Proof.
 (*plus_n_Sm: forall n m : nat, S (n + m) = n + S m*)
 (*/standard, recommended (plus_n_n_injective)*)
 
+ (* standard (eqb_true)*)
+Theorem eqb_true : forall n m,
+    n =? m = true -> n = m.
+Proof.
+  intro n. induction n as [|n' IHn'].
+  - intros m H. induction m as [| m' IHm'].
+    + reflexivity.
+    + inversion H.
+  - intros m H. induction m as [| m' IHm'].
+    + inversion H.
+    + inversion H. apply IHn' in H. rewrite -> H. reflexivity. Qed.
+ (*  /standard (eqb_true)*)
 
 

@@ -202,3 +202,177 @@ Proof.
  (*  /standard (eqb_true)*)
 
 
+ (*standard, recommended (gen_dep_practice)*)
+Theorem nth_error_after_last: forall (n : nat) (X : Type) (l : list X),
+     length l = n ->
+     nth_error l n = None.
+Proof.
+  intros.
+  generalize dependent n.
+  induction l as [| h t IH].
+  - intros.
+    rewrite <- H.
+    reflexivity.
+  - intros.
+    rewrite <- H.
+    simpl.
+    apply IH.
+    reflexivity.
+Qed.
+ (* /standard, recommended (gen_dep_practice)*)
+
+Definition foo (x: nat) := 5.
+
+Fact silly_fact_1 : forall m, foo m + 1 = foo (m + 1) + 1.
+Proof.
+  intros m.
+  simpl.
+  reflexivity.
+Qed.
+
+Definition bar x :=
+  match x with
+  | O => 5
+  | S _ => 5
+  end.
+
+Fact silly_fact_2_FAILED : forall m, bar m + 1 = bar (m + 1) + 1.
+Proof.
+  intros m.
+  simpl. Abort.
+
+Fact silly_fact_2 : forall m, bar m + 1 = bar (m + 1) + 1.
+Proof.
+  intros m.
+  destruct m eqn:E.
+  - simpl. reflexivity.
+  - simpl. reflexivity.
+Qed.
+
+Fact silly_fact_2' : forall m, bar m + 1 = bar (m + 1) + 1.
+Proof.
+  intros m.
+  unfold bar.
+  destruct m eqn:E.
+  - reflexivity.
+  - reflexivity.
+Qed.
+
+Definition sillyfun (n : nat) : bool :=
+  if n =? 3 then false
+  else if n =? 5 then false
+  else false.
+
+Theorem sillyfun_false : forall (n : nat),
+  sillyfun n = false.
+Proof.
+  intros n. unfold sillyfun.
+  destruct (n =? 3) eqn:E1.
+    - reflexivity.
+    - destruct (n =? 5) eqn:E2.
+      + reflexivity.
+      + reflexivity. Qed.
+
+ (*standard, optional (combine_split)*)
+Fixpoint split {X Y : Type} (l : list (X*Y))
+               : (list X) * (list Y) :=
+  match l with
+  | [] => ([], [])
+  | (x, y) :: t =>
+      match split t with
+      | (lx, ly) => (x :: lx, y :: ly)
+      end
+  end.
+
+Theorem tail_eq: forall (X: Type) (h: X) (l1 l2: list X),
+    l1 = l2 -> h :: l1 = h :: l2.
+Proof.
+  intros. apply f_equal. apply H.
+Qed.
+
+Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
+  split l = (l1, l2) ->
+  combine l1 l2 = l.
+Proof.
+  intros X Y l. induction l as [| h t IHt].
+  - intros l1 l2 H. inversion H. reflexivity.
+  - intros l1 l2 H. inversion H. destruct h. destruct (split t).
+    simpl in H1. inversion H1. simpl. 
+    apply tail_eq.
+    apply IHt.
+    reflexivity.
+Qed.
+ (* /standard, optional (combine_split)*)
+
+Definition sillyfun1 (n : nat) : bool :=
+  if n =? 3 then true
+  else if n =? 5 then true
+  else false.
+
+Theorem sillyfun1_odd_FAILED : forall (n : nat),
+     sillyfun1 n = true ->
+     oddb n = true.
+Proof.
+  intros n eq. unfold sillyfun1 in eq.
+  destruct (n =? 3).
+Abort.
+
+Theorem sillyfun1_odd : forall (n : nat),
+     sillyfun1 n = true ->
+     oddb n = true.
+Proof.
+  intros n eq. unfold sillyfun1 in eq.
+  destruct (n =? 3) eqn:Heqe3.
+    - apply eqb_true in Heqe3.
+      rewrite -> Heqe3. reflexivity.
+    -
+     
+      destruct (n =? 5) eqn:Heqe5.
+        +
+          apply eqb_true in Heqe5.
+          rewrite -> Heqe5. reflexivity.
+        + discriminate eq. Qed.
+
+(*standard (destruct_eqn_practice)*)
+Theorem bool_fn_applied_thrice :
+  forall (f : bool -> bool) (b : bool),
+  f (f (f b)) = f b.
+Proof.
+  intros f b. destruct b eqn:H.
+  - destruct (f true) eqn:H1.
+    + rewrite -> H1. rewrite -> H1. reflexivity.
+    + destruct (f false) eqn:H2.
+      rewrite -> H1. reflexivity.
+      rewrite -> H2. reflexivity.
+  - destruct (f false) eqn:H3.
+    + destruct (f true) eqn:H4.
+      rewrite -> H4. reflexivity.
+      rewrite -> H3. reflexivity.
+    + rewrite -> H3. rewrite -> H3. reflexivity.
+Qed. 
+(* /standard (destruct_eqn_practice)*)
+
+(*standard (eqb_sym)*)
+Theorem eqb_sym : forall (n m : nat),
+  (n =? m) = (m =? n).
+Proof.
+  intros n. induction n as [|n' IHn'].
+  - intros m. destruct m as [|m'].
+    + simpl. reflexivity.
+    + simpl. reflexivity.
+  - intro m. destruct m as [|m'].
+    + simpl. reflexivity.
+    + simpl. apply IHn'. 
+Qed.
+(*/standard (eqb_sym)*)
+
+(*standard, optional (eqb_trans)*)
+Theorem eqb_trans : forall n m p,
+  n =? m = true ->
+  m =? p = true ->
+  n =? p = true.
+Proof.
+  intros n m p eq1 eq2. 
+(*/standard, optional (eqb_trans)*)
+
+

@@ -180,3 +180,153 @@ Proof.
   - simpl. rewrite -> IHb1. rewrite -> IHb2. reflexivity.
 Qed.
 
+Module aevalR_first_try.
+
+Inductive aevalR : aexp -> nat -> Prop :=
+  | E_ANum n :
+      aevalR (ANum n) n
+  | E_APlus (e1 e2: aexp) (n1 n2: nat) :
+      aevalR e1 n1 ->
+      aevalR e2 n2 ->
+      aevalR (APlus e1 e2) (n1 + n2)
+  | E_AMinus (e1 e2: aexp) (n1 n2: nat) :
+      aevalR e1 n1 ->
+      aevalR e2 n2 ->
+      aevalR (AMinus e1 e2) (n1 - n2)
+  | E_AMult (e1 e2: aexp) (n1 n2: nat) :
+      aevalR e1 n1 ->
+      aevalR e2 n2 ->
+      aevalR (AMult e1 e2) (n1 * n2).
+
+Module TooHardToRead.
+
+
+Inductive aevalR : aexp -> nat -> Prop :=
+  | E_ANum n :
+      aevalR (ANum n) n
+  | E_APlus (e1 e2: aexp) (n1 n2: nat)
+      (H1 : aevalR e1 n1)
+      (H2 : aevalR e2 n2) :
+      aevalR (APlus e1 e2) (n1 + n2)
+  | E_AMinus (e1 e2: aexp) (n1 n2: nat)
+      (H1 : aevalR e1 n1)
+      (H2 : aevalR e2 n2) :
+      aevalR (AMinus e1 e2) (n1 - n2)
+  | E_AMult (e1 e2: aexp) (n1 n2: nat)
+      (H1 : aevalR e1 n1)
+      (H2 : aevalR e2 n2) :
+      aevalR (AMult e1 e2) (n1 * n2).
+
+End TooHardToRead.
+
+Notation "e '\\' n"
+         := (aevalR e n)
+            (at level 50, left associativity)
+         : type_scope.
+
+End aevalR_first_try.
+
+Reserved Notation "e '\\' n" (at level 90, left associativity).
+
+Inductive aevalR : aexp -> nat -> Prop :=
+  | E_ANum (n : nat) :
+      (ANum n) \\ n
+  | E_APlus (e1 e2 : aexp) (n1 n2 : nat) :
+      (e1 \\ n1) -> (e2 \\ n2) -> (APlus e1 e2) \\ (n1 + n2)
+  | E_AMinus (e1 e2 : aexp) (n1 n2 : nat) :
+      (e1 \\ n1) -> (e2 \\ n2) -> (AMinus e1 e2) \\ (n1 - n2)
+  | E_AMult (e1 e2 : aexp) (n1 n2 : nat) :
+      (e1 \\ n1) -> (e2 \\ n2) -> (AMult e1 e2) \\ (n1 * n2)
+
+  where "e '\\' n" := (aevalR e n) : type_scope.
+
+Theorem aeval_iff_aevalR : forall a n,
+  (a \\ n) <-> aeval a = n.
+Proof.
+ split.
+ -
+   intros H.
+   induction H; simpl.
+   +
+     reflexivity.
+   +
+     rewrite IHaevalR1. rewrite IHaevalR2. reflexivity.
+   +
+     rewrite IHaevalR1. rewrite IHaevalR2. reflexivity.
+   +
+     rewrite IHaevalR1. rewrite IHaevalR2. reflexivity.
+ -
+   generalize dependent n.
+   induction a;
+      simpl; intros; subst.
+   +
+     apply E_ANum.
+   +
+     apply E_APlus.
+      apply IHa1. reflexivity.
+      apply IHa2. reflexivity.
+   +
+     apply E_AMinus.
+      apply IHa1. reflexivity.
+      apply IHa2. reflexivity.
+   +
+     apply E_AMult.
+      apply IHa1. reflexivity.
+      apply IHa2. reflexivity.
+Qed.
+
+Theorem aeval_iff_aevalR' : forall a n,
+  (a \\ n) <-> aeval a = n.
+Proof.
+  split.
+  -
+    intros H; induction H; subst; reflexivity.
+  -
+    generalize dependent n.
+    induction a; simpl; intros; subst; constructor;
+       try apply IHa1; try apply IHa2; reflexivity.
+Qed.
+
+(*standard (bevalR)*)
+Inductive bevalR: bexp -> bool -> Prop :=
+  | E_BTrue : bevalR (BTrue) true
+	| E_BFalse : bevalR (BFalse) false
+	| E_BEq (e1 e2: aexp) (n1 n2 : nat) : 
+						aevalR e1 n1 -> aevalR e2 n2 -> bevalR (BEq e1 e2) (n1 =? n2)
+	| E_BLe (e1 e2 : aexp) (n1 n2 : nat):
+						aevalR e1 n1 -> aevalR e2 n2 -> bevalR (BLe e1 e2) (n1 <=? n2)
+	| E_BNot (e1 : bexp) (b : bool) :
+							bevalR e1 b -> bevalR (BNot e1) (negb b)
+	| E_BAnd (e1 e2 : bexp) (b1 b2 : bool) : 
+							bevalR e1 b1 -> bevalR e2 b2 -> bevalR (BAnd e1 e2) (andb b1 b2).
+
+Lemma beval_iff_bevalR : forall b bv,
+  bevalR b bv <-> beval b = bv.
+Proof.
+  split.
+  - intros H. induction H.
+    + reflexivity.
+    + reflexivity.
+    + simpl. rewrite -> aeval_iff_aevalR in H. rewrite -> aeval_iff_aevalR in H0. rewrite -> H. rewrite -> H0. reflexivity.
+    + simpl. rewrite -> aeval_iff_aevalR in H. rewrite -> aeval_iff_aevalR in H0. rewrite -> H. rewrite -> H0. reflexivity.
+    + simpl. rewrite -> IHbevalR. reflexivity.
+    + simpl. rewrite -> IHbevalR1. rewrite -> IHbevalR2. reflexivity.
+  - generalize dependent bv.
+    induction b; simpl; intros; subst.
+    + apply E_BTrue.
+    + apply E_BFalse.
+    + apply E_BEq. 
+      * rewrite -> aeval_iff_aevalR. reflexivity.
+      * rewrite -> aeval_iff_aevalR. reflexivity.
+    + apply E_BLe. 
+      * rewrite -> aeval_iff_aevalR. reflexivity.
+      * rewrite -> aeval_iff_aevalR. reflexivity.
+    + apply E_BNot. apply IHb. reflexivity.
+    + apply E_BAnd. apply IHb1. reflexivity. apply IHb2. reflexivity.
+Qed. 
+(*/standard (bevalR)*)
+
+
+
+
+

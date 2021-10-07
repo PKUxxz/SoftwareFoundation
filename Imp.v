@@ -104,7 +104,7 @@ Qed.
 Lemma foo' : forall n, 0 <=? n = true.
 Proof.
   intros.
-  destruct n;
+  destruct n ;
   
   simpl;
   
@@ -145,5 +145,38 @@ Proof.
 Theorem In10 : In 10 [1;2;3;4;5;6;7;8;9;10].
 Proof.
   repeat (try (left; reflexivity); right).
+Qed.
+
+Fixpoint optimize_0plus_b (b : bexp) : bexp :=
+  match b with
+  | BTrue => BTrue
+  | BFalse => BFalse
+  | BEq a1 a2 => BEq (optimize_0plus a1) (optimize_0plus a2)
+  | BLe a1 a2 => BLe (optimize_0plus a1) (optimize_0plus a2)
+  | BNot b1 => BNot (optimize_0plus_b b1)
+  | BAnd b1 b2 => BAnd (optimize_0plus_b b1) (optimize_0plus_b b2)
+  end.
+
+
+Theorem optimize_0plus_b_sound : forall b,
+  beval (optimize_0plus_b b) = beval b.
+Proof.
+  intro b. induction b.
+  - reflexivity.
+  - reflexivity.
+  - simpl. rewrite -> optimize_0plus_sound. rewrite -> optimize_0plus_sound. reflexivity.
+  - simpl. rewrite -> optimize_0plus_sound. rewrite -> optimize_0plus_sound. reflexivity.
+  - simpl. rewrite -> IHb. reflexivity.
+  - simpl. rewrite -> IHb1. rewrite -> IHb2. reflexivity.
+Qed.
+
+Theorem optimize_0plus_b_sound' : forall b,
+  beval (optimize_0plus_b b) = beval b.
+Proof.
+  intro b. induction b; 
+  try reflexivity; 
+  try (simpl; rewrite -> optimize_0plus_sound; rewrite -> optimize_0plus_sound; reflexivity).
+  - simpl. rewrite -> IHb. reflexivity.
+  - simpl. rewrite -> IHb1. rewrite -> IHb2. reflexivity.
 Qed.
 

@@ -197,6 +197,115 @@ Proof.
   intros. apply H in H0. destruct H0. Qed. 
 (*/standard, optional (not_implies_our_not)*)
 
+Notation "x <> y" := (~(x = y)).
+
+Theorem zero_not_one : 0 <> 1.
+Proof.
+  unfold not. intros contra. discriminate contra. Qed.
+
+Theorem not_False :
+  ~ False.
+Proof.
+  unfold not. intros H. destruct H. Qed.
+
+Theorem contradiction_implies_anything : forall P Q : Prop,
+  (P /\ ~P) -> Q.
+Proof.
+  intros P Q [HP HNA]. unfold not in HNA.
+  apply HNA in HP. destruct HP. Qed.
+
+Theorem double_neg : forall P : Prop,
+  P -> ~~P.
+Proof.
+  intros P H. unfold not. intros G. apply G. apply H. Qed.
+
+(*standard, recommended (contrapositive)*)
+Theorem contrapositive : forall (P Q : Prop),
+  (P -> Q) -> (~Q -> ~P).
+Proof.
+  intros P Q H. unfold not. intros G I. apply H in I. apply G in I. destruct I. Qed.
+(*/standard, recommended (contrapositive)*)
+
+(*standard (not_both_true_and_false)*)
+Theorem not_both_true_and_false : forall P : Prop,
+  ~ (P /\ ~P).
+Proof.
+  intro P. unfold not. intros [H1 H2]. apply H2 in H1. destruct H1. Qed.
+(*/standard (not_both_true_and_false)*)
+
+Theorem not_true_is_false : forall b : bool,
+  b <> true -> b = false.
+Proof.
+  intros [] H.
+  -
+    unfold not in H.
+    apply ex_falso_quodlibet.
+    apply H. reflexivity.
+  -
+    reflexivity.
+Qed.
+
+Theorem not_true_is_false' : forall b : bool,
+  b <> true -> b = false.
+Proof.
+  intros [] H.
+  -
+    unfold not in H.
+    exfalso.     apply H. reflexivity.
+  - reflexivity.
+Qed.
+
+Lemma True_is_true : True.
+Proof. apply I. Qed.
+
+Module MyIff.
+
+Definition iff (P Q : Prop) := (P -> Q) /\ (Q -> P).
+
+Notation "P <-> Q" := (iff P Q)
+                      (at level 95, no associativity)
+                      : type_scope.
+
+End MyIff.
+
+Theorem iff_sym : forall P Q : Prop,
+  (P <-> Q) -> (Q <-> P).
+Proof.
+  intros P Q [HAB HBA].
+  split.
+  - apply HBA.
+  - apply HAB. Qed.
+
+Lemma not_true_iff_false : forall b,
+  b <> true <-> b = false.
+Proof.
+  intros b. split.
+  - apply not_true_is_false.
+  -
+    intros H. rewrite H. intros H'. discriminate H'.
+Qed.
+
+(*standard, optional (iff_properties)*)
+Theorem iff_refl : forall P : Prop,
+  P <-> P.
+Proof.
+  intro P. reflexivity. Qed.
+  
+
+Theorem iff_trans : forall P Q R : Prop,
+  (P <-> Q) -> (Q <-> R) -> (P <-> R).
+Proof.
+  intros P Q R [PQ QP] [QR RQ]. split.
+  - (* P -> R *)
+    intros HP. apply QR. apply PQ. apply HP.
+  - (* R -> P*)
+    intros HR. apply QP. apply RQ. apply HR. Qed.
+(*/standard, optional (iff_properties)*)
+
+
+
+
+
 
 
 

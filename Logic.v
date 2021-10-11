@@ -460,16 +460,74 @@ Qed.
 (*/standard (In_app_iff)*)
 
 (*standard, recommended (All)*)
-Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop
-  . Admitted.
+Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop :=
+  match l with
+  | nil => True
+  | h :: t => P h /\ All P t
+  end.
 
 Lemma All_In :
   forall T (P : T -> Prop) (l : list T),
     (forall x, In x l -> P x) <->
     All P l.
 Proof.
-Admitted.
+  intros T P l. split.
+  - (*(forall x : T, In x l -> P x) -> All P l*)
+    induction l as [|h t IHt].
+    + intro H. simpl. reflexivity.
+    + intro H. simpl. split.
+      * apply H. simpl. left. reflexivity.
+      * apply IHt. intros x H1. apply H. simpl. right. apply H1.
+  - (*All P l -> forall x : T, In x l -> P x*)
+    induction l as [|h t IHt].
+    + intros. destruct H0.
+    + simpl. intros [H1 H2] x [H3|H4].
+      * rewrite <- H3. apply H1.
+      * apply IHt. apply H2. apply H4. 
+Qed. 
 (*/standard, recommended (All)*)
+
+(*standard (combine_odd_even)*)
+Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
+  fun n =>
+    match oddb n with
+    | true => Podd n
+    | false => Peven n
+    end.
+
+
+Theorem combine_odd_even_intro :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    (oddb n = true -> Podd n) ->
+    (oddb n = false -> Peven n) ->
+    combine_odd_even Podd Peven n.
+Proof.
+  intros Podd Peven n. destruct (oddb n) eqn:H.
+  - intros H1 H2. unfold combine_odd_even. rewrite -> H. apply H1. reflexivity.
+  - intros H1 H2. unfold combine_odd_even. rewrite -> H. apply H2. reflexivity.
+Qed.
+
+Theorem combine_odd_even_elim_odd :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    oddb n = true ->
+    Podd n.
+Proof.
+  intros Podd Peven n. unfold combine_odd_even. 
+  intros H1 H2. rewrite -> H2 in H1. apply H1. 
+Qed.
+
+Theorem combine_odd_even_elim_even :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    oddb n = false ->
+    Peven n.
+Proof.
+  intros Podd Peven n. unfold combine_odd_even. intros H1 H2.
+  rewrite -> H2 in H1. apply H1.
+Qed.
+(*/standard (combine_odd_even)*)
+
 
 
 

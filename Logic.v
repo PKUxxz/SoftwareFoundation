@@ -389,6 +389,88 @@ Proof.
 Qed.
 (*/standard (dist_exists_or)*)
 
+Fixpoint In {A : Type} (x : A) (l : list A) : Prop :=
+  match l with
+  | [] => False
+  | x' :: l' => x' = x \/ In x l'
+  end.
+
+Example In_example_1 : In 4 [1; 2; 3; 4; 5].
+Proof.
+  simpl. right. right. right. left. reflexivity.
+Qed.
+
+Example In_example_2 :
+  forall n, In n [2; 4] ->
+  exists n', n = 2 * n'.
+Proof.
+  simpl.
+  intros n [H | [H | []]].
+  - exists 1. rewrite <- H. reflexivity.
+  - exists 2. rewrite <- H. reflexivity.
+Qed.
+
+Lemma In_map :
+  forall (A B : Type) (f : A -> B) (l : list A) (x : A),
+    In x l ->
+    In (f x) (map f l).
+Proof.
+  intros A B f l x.
+  induction l as [|x' l' IHl'].
+  -
+    simpl. intros [].
+  -
+    simpl. intros [H | H].
+    + rewrite H. left. reflexivity.
+    + right. apply IHl'. apply H.
+Qed.
+
+(*standard (In_map_iff)*)
+Lemma In_map_iff :
+  forall (A B : Type) (f : A -> B) (l : list A) (y : B),
+    In y (map f l) <->
+    exists x, f x = y /\ In x l.
+Proof.
+  intros A B f l y. split.
+  - induction l as [| h t IHt].
+    + simpl. intros [].
+    + simpl. intros [H1 | H2].
+      * exists h. split. apply H1. left. reflexivity.
+      * apply IHt in H2. destruct H2 as [w [F I]]. exists w. split.
+        apply F. right. apply I.
+  - intros [x [H1 H2]]. rewrite <- H1. apply In_map. apply H2. Qed.
+(*/standard (In_map_iff)*)
+
+(*standard (In_app_iff)*)
+Lemma In_app_iff : forall A l l' (a:A),
+  In a (l++l') <-> In a l \/ In a l'.
+Proof.
+  intros A l l' a. split.
+  - induction l as [|h t IHt].
+    + simpl. intro H. right. apply H.
+    + simpl. intros [H1 | H2]. left. left. apply H1. apply IHt in H2. 
+      destruct H2 as [H3 | H4]. left. right. apply H3. right. apply H4.
+  - induction l as [| h t IHt]. 
+    + intros [H1 | H2]. destruct H1. simpl. apply H2.
+    + simpl. intros [[H1 | H2] | H3]. 
+      * left. apply H1.
+      * right. apply IHt. left. apply H2.
+      * right. apply IHt. right. apply H3.
+Qed.
+(*/standard (In_app_iff)*)
+
+(*standard, recommended (All)*)
+Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop
+  . Admitted.
+
+Lemma All_In :
+  forall T (P : T -> Prop) (l : list T),
+    (forall x, In x l -> P x) <->
+    All P l.
+Proof.
+Admitted.
+(*/standard, recommended (All)*)
+
 
 
 

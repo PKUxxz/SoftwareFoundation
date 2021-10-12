@@ -820,6 +820,107 @@ Proof.
 Qed.
 (*/standard, recommended (All_forallb)*)
 
+Definition excluded_middle := forall P : Prop,
+  P \/ ~ P.
+
+Theorem restricted_excluded_middle : forall P b,
+  (P <-> b = true) -> P \/ ~ P.
+Proof.
+  intros P [] H.
+  - left. rewrite H. reflexivity.
+  - right. rewrite H. intros contra. discriminate contra.
+Qed.
+
+Theorem restricted_excluded_middle_eq : forall (n m : nat),
+  n = m \/ n <> m.
+Proof.
+  intros n m.
+  apply (restricted_excluded_middle (n = m) (n =? m)).
+  symmetry.
+  apply eqb_eq.
+Qed.
+
+(*standard (excluded_middle_irrefutable)*)
+Theorem excluded_middle_irrefutable: forall (P:Prop),
+  ~ ~ (P \/ ~ P).
+Proof.
+  intros P H.
+  unfold not in H.
+  apply H.
+  right.
+  intros HP.
+  apply H.
+  left.
+  apply HP.
+Qed.
+(*/standard (excluded_middle_irrefutable)*)
+
+(* Exercise 20 *)
+Theorem not_exists_dist:
+  excluded_middle ->
+  forall (X: Type) (P: X -> Prop),
+    ~(exists x, ~P x) -> (forall x, P x).
+Proof.
+  intros EM X P.
+  unfold not.
+  intros H.
+  intros x.
+
+  destruct (EM (P x)) as [EM1 | EM2].
+  - apply EM1.
+  - exfalso. apply H.
+    exists x.
+    apply EM2.
+Qed.
+
+(* Exercise 21 *)
+(* Definition excluded_middle := forall P: Prop, P \/ ~P. *)
+
+Definition peirce := forall P Q: Prop,
+  ((P -> Q) -> P) -> P.
+
+Definition double_negation_elimination := forall P: Prop,
+  ~~P -> P.
+
+Definition de_morgan_not_and_not := forall P Q: Prop,
+  ~(~P /\ ~Q) -> P \/ Q.
+
+Definition implies_to_or := forall P Q: Prop,
+  (P -> Q) -> (~P \/ Q).
+
+Fact dne_eq_lem: double_negation_elimination <-> excluded_middle.
+Proof.
+  split.
+  - intros dne.
+    intros P.
+    apply dne.
+    apply excluded_middle_irrefutable.
+  - intros lem.
+    intros P H.
+    destruct (lem P) as [lem1 | lem2].
+    + apply lem1.
+    + destruct (H lem2).
+Qed.
+
+Fact dmnn_eq_lem: de_morgan_not_and_not <-> excluded_middle.
+Proof.
+  split.
+  - intros dmnn.
+    intros P.
+    apply dmnn.
+    intros [H1 H2].
+    destruct (H2 H1).
+  - intros lem.
+    intros P Q H.
+    destruct (lem P) as [H1 | H2].
+    + left. apply H1.
+    + destruct (lem Q) as [H3 | H4].
+      * right. apply H3.
+      * exfalso. apply H.
+        split. apply H2. apply H4.
+Qed.
+
+
 
 
 

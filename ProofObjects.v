@@ -207,7 +207,7 @@ Proof.
   intros X x y. intros. apply (H (eq x) (eq_refl x)). Qed.
  (*/standard, optional (leibniz_equality__equality)*)
 
-
+End MyEquality.
 
 
 

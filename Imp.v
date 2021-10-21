@@ -668,9 +668,53 @@ Theorem loop_never_stops : forall st st',
   ~(st =[ loop ]=> st').
 Proof.
   intros st st' contra. unfold loop in contra.
-  remember (WHILE true DO SKIP END)%imp as loopdef
-           eqn:Heqloopdef.
+  simpl in contra.
+	remember (WHILE BTrue DO SKIP END)%imp as loopdef.
+	induction contra.
+	simpl in Heqloopdef.
+	inversion Heqloopdef.
+
+	inversion Heqloopdef.
+
+	inversion Heqloopdef.
+
+	inversion Heqloopdef.
+
+	inversion Heqloopdef.
+
+	inversion Heqloopdef.
+	subst.
+	simpl in H.
+	inversion H.
+
+	inversion Heqloopdef.
+	subst.
+	inversion contra1.
+	subst.
+	apply IHcontra2.
+	reflexivity.
+Qed.
 (*/standard, recommended (loop_never_stops)*)
+
+(*standard (no_whiles_eqv)*)
+Open Scope imp_scope.
+Fixpoint no_whiles (c : com) : bool :=
+  match c with
+  | SKIP =>
+      true
+  | _ ::= _ =>
+      true
+  | c1 ;; c2 =>
+      andb (no_whiles c1) (no_whiles c2)
+  | TEST _ THEN ct ELSE cf FI =>
+      andb (no_whiles ct) (no_whiles cf)
+  | WHILE _ DO _ END =>
+      false
+  end.
+Close Scope imp_scope.
+
+(*/standard (no_whiles_eqv)*)
+
 
 
 

@@ -1,6 +1,5 @@
-From Coq Require Import omega.Omega.
 From Coq Require Import Arith.Arith.
-From LF Require Import Imp Maps.
+From volume1 Require Import Imp Maps.
 
 Open Scope imp_scope.
 Fixpoint ceval_step1 (st : state) (c : com) : state :=
